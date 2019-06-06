@@ -31,7 +31,7 @@ public class TransmittedMorseScript : MonoBehaviour {
                                 "ROGER","WELOSTBRO","AMIDEAF","KEYPAD","DEFUSER","NUCLEARWEAPONS",
                                 "KAPPA","DELTA","PI3","SMOKE","SENDHELP","LOST","SWAN",
                                 "NOMNOM","BLUE","BOOM","CANCEL","DEFUSED","BROKEN","MEMORY",
-                                "R6S8T","TRANSMISSION","TIMWI","GREEN","EQUATIONSX",
+                                "R6S8T","TRANSMISSION","UMWHAT","GREEN","EQUATIONSX",
                                 "RED","ENERGY","JESTER","CONTACT","LONG",
                                 "CODERED","UNLUCKY"};
     private string message;
@@ -48,6 +48,10 @@ public class TransmittedMorseScript : MonoBehaviour {
 
     private bool pressonce;
     private bool pressonce2;
+
+    private Vector3 posslide1;
+    private Vector3 posslide2;
+    private Vector3 posslide3;
 
     private IEnumerator cour;
     private bool courrunning = false;
@@ -69,6 +73,9 @@ public class TransmittedMorseScript : MonoBehaviour {
     }
 
     void Start () {
+        posslide1 = slider1.transform.localPosition;
+        posslide2 = slider2.transform.localPosition;
+        posslide3 = slider3.transform.localPosition;
         currentord = 0;
         if(stage == 1)
         {
@@ -92,91 +99,6 @@ public class TransmittedMorseScript : MonoBehaviour {
         calculateSlidersAndPositions();
         logSlidersAndPositions();
     }
-	/**
-	void Update () {
-        if ((bomb.GetSolvedModuleNames().Count >= 2) && (symbol == 5))
-        {
-            if (announceonce != 2)
-            {
-                announceonce = 1;
-                bool rule1 = false;
-                bool rule2 = false;
-                bool rule3 = false;
-                bool rule4 = false;
-                bool rule5 = false;
-                if ((bomb.GetBatteryCount() > 1) && isAnyPlateEmpty())
-                {
-                    rule1 = true;
-                }
-                if (bomb.GetSolvedModuleNames().Count >= 2)
-                {
-                    rule2 = true;
-                }
-                if (bomb.IsIndicatorPresent("FRQ") && bomb.IsIndicatorOn("FRQ"))
-                {
-                    rule3 = true;
-                }
-                if (!bomb.IsIndicatorPresent("FRQ") && !bomb.IsIndicatorOn("FRQ"))
-                {
-                    if ((bomb.GetModuleNames().Count - bomb.GetSolvableModuleNames().Count) > 0)
-                    {
-                        rule4 = true;
-                    }
-                    if (bomb.IsIndicatorPresent("BOB") && bomb.IsIndicatorOff("BOB"))
-                    {
-                        rule5 = true;
-                    }
-                }
-                answerlong = reCalcTorque(rule1, rule2, rule3, rule4, rule5, newnumbers[0], newnumbers[1]);
-                answersimp = Mathf.Round(answerlong);
-                answersimp = Mathf.Abs(answersimp);
-                Debug.LogFormat("[Equations X #{0}] New answer to Equations X #{0} (unsimplified): {1}", moduleId, answerlong);
-                Debug.LogFormat("[Equations X #{0}] New answer to Equations X #{0}: {1}", moduleId, answersimp);
-            }
-        }
-        //here to prevent from happening infinitely
-        if ((announceonce == 1) && (symbol == 5))
-        {
-            announceonce = 2;
-        }
-        if ((bomb.GetSolvedModuleNames().Count >= 1) && (symbol == 2))
-        {
-            if (announceonce != 2)
-            {
-                announceonce = 1;
-                bool rule1 = false;
-                if (bomb.GetSerialNumber().Contains('3') || bomb.GetSerialNumber().Contains('5'))
-                {
-                    rule1 = true;
-                }
-                answerlong = reCalcPosition(rule1, newnumbers[0], newnumbers[1], newnumbers[2], newnumbers[3]);
-                answersimp = Mathf.Round(answerlong);
-                answersimp = Mathf.Abs(answersimp);
-                Debug.LogFormat("[Equations X #{0}] New answer to Equations X #{0} (unsimplified): {1}", moduleId, answerlong);
-                Debug.LogFormat("[Equations X #{0}] New answer to Equations X #{0}: {1}", moduleId, answersimp);
-            }
-        }
-        //here to prevent from happening infinitely
-        if ((announceonce == 1) && (symbol == 2))
-        {
-            announceonce = 2;
-        }
-        if ((bomb.GetStrikes() == 2) && (symbol == 7))
-        {
-            typeNothing = true;
-            if(announceonce != 2)
-            {
-                announceonce = 1;
-            }
-        }
-        //here to prevent from happening infinitely
-        if ((announceonce == 1) && (symbol == 7))
-        {
-            Debug.LogFormat("[Equations X #{0}] Rule 1 is now {1}!", moduleId, typeNothing);
-            Debug.LogFormat("[Equations X #{0}] Answer is now to press submit with no input!", moduleId);
-            announceonce = 2;
-        }
-	}*/
 
     void PressButton(KMSelectable pressed)
     {
@@ -206,6 +128,12 @@ public class TransmittedMorseScript : MonoBehaviour {
                 audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.TypewriterKey, transform);
                 currentord = 0;
                 Debug.LogFormat("[Transmitted Morse #{0}] <Stage {1}> Deleted Stored Inputs (Reset Pressed), Please Start Inputs from the Beginning", moduleId, stage);
+                slider1butdisp.GetComponentInChildren<TextMesh>().text = "1";
+                slider2butdisp.GetComponentInChildren<TextMesh>().text = "1";
+                slider3butdisp.GetComponentInChildren<TextMesh>().text = "1";
+                slider1.transform.localPosition = posslide1;
+                slider2.transform.localPosition = posslide2;
+                slider3.transform.localPosition = posslide3;
             }
             else if (pressed == buttons[3] || pressed == buttons[4] || pressed == buttons[5])
             {
@@ -258,12 +186,26 @@ public class TransmittedMorseScript : MonoBehaviour {
                 {
                     Debug.LogFormat("[Transmitted Morse #{0}] <Stage {1}> Incorrect Slider or Position Press, try again!", moduleId, stage);
                     GetComponent<KMBombModule>().HandleStrike();
+                    slider1butdisp.GetComponentInChildren<TextMesh>().text = "1";
+                    slider2butdisp.GetComponentInChildren<TextMesh>().text = "1";
+                    slider3butdisp.GetComponentInChildren<TextMesh>().text = "1";
+                    slider1.transform.localPosition = posslide1;
+                    slider2.transform.localPosition = posslide2;
+                    slider3.transform.localPosition = posslide3;
                 }
                 if (pass1 == true && pass2 == true && currentord == message.Length)
                 {
                     if(stage == 1)
                     {
                         audio.PlaySoundAtTransform("shutdown", transform);
+                        if (courrunning == true)
+                        {
+                            StopCoroutine(cour);
+                        }
+                        if(pressonce == true)
+                        {
+                            buttons[0].transform.Translate(new Vector3(0.0F, 0.0F, 0.005F));
+                        }
                         stage++;
                         Invoke("Start", 3);
                         Invoke("shutdownLEDS", 0.5F);
@@ -275,6 +217,10 @@ public class TransmittedMorseScript : MonoBehaviour {
                         if(courrunning == true)
                         {
                             StopCoroutine(cour);
+                        }
+                        if (pressonce == true)
+                        {
+                            buttons[0].transform.Translate(new Vector3(0.0F, 0.0F, 0.005F));
                         }
                         moduleSolved = true;
                         Invoke("shutdownLEDS", 0.5F);
@@ -365,6 +311,12 @@ public class TransmittedMorseScript : MonoBehaviour {
         bled.material = ledoptions[7];
         stage1led.material = ledoptions[7];
         stage2led.material = ledoptions[7];
+        slider1butdisp.GetComponentInChildren<TextMesh>().text = "1";
+        slider2butdisp.GetComponentInChildren<TextMesh>().text = "1";
+        slider3butdisp.GetComponentInChildren<TextMesh>().text = "1";
+        slider1.transform.localPosition = posslide1;
+        slider2.transform.localPosition = posslide2;
+        slider3.transform.localPosition = posslide3;
     }
 
     private void randomizeMessage()
@@ -774,10 +726,10 @@ public class TransmittedMorseScript : MonoBehaviour {
                 audio.PlaySoundAtTransform("transmission", transform);
                 yield return new WaitForSeconds(24.0F);
             }
-            else if (messagetrans.Equals("TIMWI"))
+            else if (messagetrans.Equals("UMWHAT"))
             {
-                audio.PlaySoundAtTransform("timwi", transform);
-                yield return new WaitForSeconds(11.0F);
+                audio.PlaySoundAtTransform("umwhat", transform);
+                yield return new WaitForSeconds(13.0F);
             }
             else if (messagetrans.Equals("GREEN"))
             {
@@ -915,98 +867,6 @@ public class TransmittedMorseScript : MonoBehaviour {
         }
         return tempcount;
     }
-    /**
-    private float reCalcPosition(bool rule1, float num1, float num2, float num3, float num4)
-    {
-        float tempanswer;
-        Debug.LogFormat("[Equations X #{0}] Rule 3 is now true! Recalculating answer...", moduleId);
-        if (rule1 == true)
-        {
-            tempanswer = (num1 * Mathf.Sin(((num2 * num3) + num4) * ((Mathf.PI) / 180))) + 21;
-            Debug.LogFormat("[Equations X #{0}] New Equation: (num1 * sin((num2 * num3) + num4)) + 21", moduleId);
-            Debug.LogFormat("[Equations X #{0}] With number substitutions: ({1} * sin(({2} * {3}) + {4})) + 21", moduleId, num1, num2, num3, num4);
-        }
-        else
-        {
-            tempanswer = num1 * Mathf.Sin(((num2 * num3) + num4) * ((Mathf.PI) / 180));
-            Debug.LogFormat("[Equations X #{0}] New Equation: num1 * sin((num2 * num3) + num4)", moduleId);
-            Debug.LogFormat("[Equations X #{0}] With number substitutions: {1} * sin(({2} * {3}) + {4})", moduleId, num1, num2, num3, num4);
-        }
-        return tempanswer;
-    }
-
-    private float reCalcTorque(bool rule1, bool rule2, bool rule3, bool rule4, bool rule5, float num1, float num2)
-    {
-        float tempanswer = 0;
-        Debug.LogFormat("[Equations X #{0}] Rule 2 is now true! Recalculating answer...", moduleId);
-        if (rule3 == true)
-        {
-            rule4 = false;
-            rule5 = false;
-        }
-        if (rule1 == true)
-        {
-            tempanswer = (newnumbers[0] * newnumbers[1]) + 10;
-            Debug.LogFormat("[Equations X #{0}] New Equation: (num1 * num2) + 10", moduleId);
-            Debug.LogFormat("[Equations X #{0}] With number substitutions: ({1} * {2}) + 10", moduleId, newnumbers[0], newnumbers[1]);
-        }
-        if (rule2 == true && rule1 == false)
-        {
-            tempanswer = ((newnumbers[0] / 2) * (newnumbers[1] / 2));
-            Debug.LogFormat("[Equations X #{0}] New Equation: ((num1 / 2) * (num2 / 2))", moduleId);
-            Debug.LogFormat("[Equations X #{0}] With number substitutions: (({1} / 2) * ({2} / 2))", moduleId, newnumbers[0], newnumbers[1]);
-        }
-        else if (rule2 == true && rule1 == true)
-        {
-            tempanswer = ((newnumbers[0] / 2.0F) * (float)(newnumbers[1] / 2.0F)) + 5.0F;
-            Debug.LogFormat("[Equations X #{0}] New Equation: ((num1 / 2) * (num2 / 2)) + 5", moduleId);
-            Debug.LogFormat("[Equations X #{0}] With number substitutions: (({1} / 2) * ({2} / 2)) + 5", moduleId, newnumbers[0], newnumbers[1]);
-        }
-        if (rule4 == true)
-        {
-            tempanswer = (newnumbers[0] * newnumbers[1]);
-            Debug.LogFormat("[Equations X #{0}] New Equation: num1 * num2", moduleId);
-            Debug.LogFormat("[Equations X #{0}] With number substitutions: {1} * {2}", moduleId, newnumbers[0], newnumbers[1]);
-        }
-        if (rule5 == true && rule4 == true)
-        {
-            tempanswer = (newnumbers[0] * newnumbers[1]) + 3;
-            Debug.LogFormat("[Equations X #{0}] New Equation: (num1 * num2) + 3", moduleId);
-            Debug.LogFormat("[Equations X #{0}] With number substitutions: ({1} * {2}) + 3", moduleId, newnumbers[0], newnumbers[1]);
-        }
-        else if (rule5 == true && rule1 == true && rule2 == false)
-        {
-            tempanswer = (newnumbers[0] * newnumbers[1]) + 13;
-            Debug.LogFormat("[Equations X #{0}] New Equation: (num1 * num2) + 13", moduleId);
-            Debug.LogFormat("[Equations X #{0}] With number substitutions: ({1} * {2}) + 13", moduleId, newnumbers[0], newnumbers[1]);
-        }
-        else if (rule5 == true && rule1 == false && rule2 == false)
-        {
-            tempanswer = (newnumbers[0] * newnumbers[1]) + 3;
-            Debug.LogFormat("[Equations X #{0}] New Equation: (num1 * num2) + 3", moduleId);
-            Debug.LogFormat("[Equations X #{0}] With number substitutions: ({1} * {2}) + 3", moduleId, newnumbers[0], newnumbers[1]);
-        }
-        else if (rule5 == true && rule1 == true && rule2 == true)
-        {
-            tempanswer = ((newnumbers[0] / 2) * (newnumbers[1] / 2)) + 8;
-            Debug.LogFormat("[Equations X #{0}] New Equation: ((num1 / 2) * (num2 / 2)) + 8", moduleId);
-            Debug.LogFormat("[Equations X #{0}] With number substitutions: (({1} / 2) * ({2} / 2)) + 8", moduleId, newnumbers[0], newnumbers[1]);
-        }
-        else if (rule5 == true && rule1 == false && rule2 == true)
-        {
-            tempanswer = ((newnumbers[0] / 2) * (newnumbers[1] / 2)) + 3;
-            Debug.LogFormat("[Equations X #{0}] New Equation: ((num1 / 2) * (num2 / 2)) + 3", moduleId);
-            Debug.LogFormat("[Equations X #{0}] With number substitutions: (({1} / 2) * ({2} / 2)) + 3", moduleId, newnumbers[0], newnumbers[1]);
-        }
-        if (rule1 == false && rule2 == false && rule5 == false)
-        {
-            tempanswer = (newnumbers[0] * newnumbers[1]);
-            Debug.LogFormat("[Equations X #{0}] New Equation: num1 * num2", moduleId);
-            Debug.LogFormat("[Equations X #{0}] With number substitutions: {1} * {2}", moduleId, newnumbers[0], newnumbers[1]);
-        }
-        return tempanswer;
-    }
-    */
 
     private int getWidgetCount()
     {
@@ -1032,7 +892,21 @@ public class TransmittedMorseScript : MonoBehaviour {
 
     private bool charIsDigit(char s)
     {
-        if (s.Equals('1') || s.Equals('3'))
+        if (s.Equals('1') || s.Equals('3') || s.Equals('6') || s.Equals('8'))
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+
+    private bool stringIsDigit(string s)
+    {
+        int temp = 0;
+        int.TryParse(s, out temp);
+        if(temp != 0)
         {
             return true;
         }
@@ -1086,8 +960,13 @@ public class TransmittedMorseScript : MonoBehaviour {
             string[] parameters = command.Split(' ',',');
             for(int j = 0; j < parameters.Length; j++)
             {
+                yield return null;
                 if (parameters[j].Equals("slider"))
                 {
+                    if (!stringIsDigit(parameters[j + 2]) || !stringIsDigit(parameters[j + 1]))
+                    {
+                        break;
+                    }
                     if (parameters[j+1].Equals("1"))
                     {
                         int temp;
@@ -1211,6 +1090,10 @@ public class TransmittedMorseScript : MonoBehaviour {
                 }
                 else if (param.EqualsIgnoreCase("slider"))
                 {
+                    if (!stringIsDigit(parameters[2]) || !stringIsDigit(parameters[1]))
+                    {
+                        break;
+                    }
                     if (parameters[1].Equals("1"))
                     {
                         int temp;
