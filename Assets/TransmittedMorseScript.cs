@@ -949,16 +949,16 @@ public class TransmittedMorseScript : MonoBehaviour {
     }
 
     //twitch plays
-    #pragma warning disable 414
+#pragma warning disable 414
     private readonly string TwitchHelpMessage = @"!{0} start [Starts the looping morse message] | !{0} stop [Stops the looping morse message] | !{0} slider 1 13 [Moves the first slider to the position of 13 and inputs it] | !{0} slider 1 13, slider 3 2, slider 2 8 [Example of Slider Input Chain Sequence] | !{0} reset [Resets the inputted sequence back to the beginning]";
-    #pragma warning restore 414
+#pragma warning restore 414
 
     IEnumerator ProcessTwitchCommand(string command)
     {
         if (command.Contains(","))
         {
-            string[] parameters = command.Split(' ',',');
-            for(int j = 0; j < parameters.Length; j++)
+            string[] parameters = command.Split(' ', ',');
+            for (int j = 0; j < parameters.Length; j++)
             {
                 yield return null;
                 if (parameters[j].Equals("slider"))
@@ -967,11 +967,11 @@ public class TransmittedMorseScript : MonoBehaviour {
                     {
                         break;
                     }
-                    if (parameters[j+1].Equals("1"))
+                    if (parameters[j + 1].Equals("1"))
                     {
                         int temp;
                         int temp2;
-                        int.TryParse(parameters[j+2], out temp);
+                        int.TryParse(parameters[j + 2], out temp);
                         int.TryParse(slider1butdisp.GetComponentInChildren<TextMesh>().text, out temp2);
                         int moveamt = temp - temp2;
                         if (moveamt < 0)
@@ -998,11 +998,11 @@ public class TransmittedMorseScript : MonoBehaviour {
                             buttons[3].OnInteract();
                         }
                     }
-                    else if (parameters[j+1].Equals("2"))
+                    else if (parameters[j + 1].Equals("2"))
                     {
                         int temp;
                         int temp2;
-                        int.TryParse(parameters[j+2], out temp);
+                        int.TryParse(parameters[j + 2], out temp);
                         int.TryParse(slider2butdisp.GetComponentInChildren<TextMesh>().text, out temp2);
                         int moveamt = temp - temp2;
                         if (moveamt < 0)
@@ -1029,11 +1029,11 @@ public class TransmittedMorseScript : MonoBehaviour {
                             buttons[4].OnInteract();
                         }
                     }
-                    else if (parameters[j+1].Equals("3"))
+                    else if (parameters[j + 1].Equals("3"))
                     {
                         int temp;
                         int temp2;
-                        int.TryParse(parameters[j+2], out temp);
+                        int.TryParse(parameters[j + 2], out temp);
                         int.TryParse(slider3butdisp.GetComponentInChildren<TextMesh>().text, out temp2);
                         int moveamt = temp - temp2;
                         if (moveamt < 0)
@@ -1104,14 +1104,14 @@ public class TransmittedMorseScript : MonoBehaviour {
                         if (moveamt < 0)
                         {
                             moveamt = Mathf.Abs(moveamt);
-                            for(int i = 0; i < moveamt; i++)
+                            for (int i = 0; i < moveamt; i++)
                             {
                                 buttons[6].OnInteract();
                                 yield return new WaitForSeconds(.1f);
                             }
                             buttons[3].OnInteract();
                         }
-                        else if(moveamt == 0)
+                        else if (moveamt == 0)
                         {
                             buttons[3].OnInteract();
                         }
