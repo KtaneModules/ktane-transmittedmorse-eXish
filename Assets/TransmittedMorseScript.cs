@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using KModkit;
+using System.Text.RegularExpressions;
 
 public class TransmittedMorseScript : MonoBehaviour {
 
@@ -949,11 +950,184 @@ public class TransmittedMorseScript : MonoBehaviour {
     }
 
     //twitch plays
-#pragma warning disable 414
-    private readonly string TwitchHelpMessage = @"!{0} start [Starts the looping morse message] | !{0} stop [Stops the looping morse message] | !{0} slider 1 13 [Moves the first slider to the position of 13 and inputs it] | !{0} slider 1 13, slider 3 2, slider 2 8 [Example of Slider Input Chain Sequence] | !{0} reset [Resets the inputted sequence back to the beginning]";
-#pragma warning restore 414
+    private bool inputIsValid(string cmd)
+    {
+        char[] validchars = {' ',',',';','0','1','2','3','4','5','6','7','8','9'};
+        char[] cmdchars = cmd.ToCharArray();
+        foreach(char c in cmdchars)
+        {
+            if (!validchars.Contains(c))
+            {
+                return false;
+            }
+        }
+        string[] parameters = cmd.Split(' ',';',',');
+        int counter = 0;
+        foreach(string str in parameters)
+        {
+            if (!stringIsDigit(str))
+            {
+                return false;
+            }
+            else
+            {
+                if (counter == 0)
+                {
+                    int temp = 0;
+                    int.TryParse(str, out temp);
+                    if(!((temp >= 1) && (temp <= 3)))
+                    {
+                        return false;
+                    }
+                    else
+                    {
+                        counter = 1;
+                    }
+                }else if (counter == 1)
+                {
+                    int temp = 0;
+                    int.TryParse(str, out temp);
+                    if (!((temp >= 1) && (temp <= 20)))
+                    {
+                        return false;
+                    }
+                    else
+                    {
+                        counter = 0;
+                    }
+                }
+            }
+        }
+        return true;
+    }
+
+    #pragma warning disable 414
+    private readonly string TwitchHelpMessage = @"!{0} start [Starts the looping morse message] | !{0} stop [Stops the looping morse message] | !{0} 1 13 [Moves the first slider to the position of 13 and inputs it] | !{0} 1 13;3 2;2 8 [Example of Slider Input Chain Sequence] | !{0} reset [Resets the inputted sequence back to the beginning]";
+    #pragma warning restore 414
 
     IEnumerator ProcessTwitchCommand(string command)
+    {
+        if (Regex.IsMatch(command, @"^\s*start\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant))
+        {
+            yield return null;
+            yield return new[] { buttons[0] };
+            yield break;
+        }
+        if (Regex.IsMatch(command, @"^\s*stop\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant))
+        {
+            yield return null;
+            yield return new[] { buttons[1] };
+            yield break;
+        }
+        if (Regex.IsMatch(command, @"^\s*reset\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant))
+        {
+            yield return null;
+            yield return new[] { buttons[2] };
+            yield break;
+        }
+        if (inputIsValid(command))
+        {
+            yield return null;
+            string[] parameters = command.Split(' ',';',',');
+            for (int j = 0; j < parameters.Length; j += 2)
+            {
+                int tester1 = 0;
+                int tester2 = 0;
+                int.TryParse(parameters[j], out tester1);
+                int.TryParse(parameters[j + 1], out tester2);
+                if (tester1 == 1)
+                {
+                    int temp = tester2;
+                    int temp2;
+                    int.TryParse(slider1butdisp.GetComponentInChildren<TextMesh>().text, out temp2);
+                    int moveamt = temp - temp2;
+                    if (moveamt < 0)
+                    {
+                        moveamt = Mathf.Abs(moveamt);
+                        for (int i = 0; i < moveamt; i++)
+                        {
+                            yield return new[] { buttons[6] };
+                        }
+                        yield return new[] { buttons[3] };
+                    }
+                    else if (moveamt == 0)
+                    {
+                        yield return new[] { buttons[3] };
+                    }
+                    else if (moveamt > 0)
+                    {
+                        for (int i = 0; i < moveamt; i++)
+                        {
+                            yield return new[] { buttons[7] };
+                        }
+                        yield return new[] { buttons[3] };
+                    }
+                }
+                else if (tester1 == 2)
+                {
+                    int temp = tester2;
+                    int temp2;
+                    int.TryParse(slider2butdisp.GetComponentInChildren<TextMesh>().text, out temp2);
+                    int moveamt = temp - temp2;
+                    if (moveamt < 0)
+                    {
+                        moveamt = Mathf.Abs(moveamt);
+                        for (int i = 0; i < moveamt; i++)
+                        {
+                            yield return new[] { buttons[8] };
+                        }
+                        yield return new[] { buttons[4] };
+                    }
+                    else if (moveamt == 0)
+                    {
+                        yield return new[] { buttons[4] };
+                    }
+                    else if (moveamt > 0)
+                    {
+                        for (int i = 0; i < moveamt; i++)
+                        {
+                            yield return new[] { buttons[9] };
+                        }
+                        yield return new[] { buttons[4] };
+                    }
+                }
+                else if (tester1 == 3)
+                {
+                    int temp = tester2;
+                    int temp2;
+                    int.TryParse(slider3butdisp.GetComponentInChildren<TextMesh>().text, out temp2);
+                    int moveamt = temp - temp2;
+                    if (moveamt < 0)
+                    {
+                        moveamt = Mathf.Abs(moveamt);
+                        for (int i = 0; i < moveamt; i++)
+                        {
+                            yield return new[] { buttons[10] };
+                        }
+                        yield return new[] { buttons[5] };
+                    }
+                    else if (moveamt == 0)
+                    {
+                        yield return new[] { buttons[5] };
+                    }
+                    else if (moveamt > 0)
+                    {
+                        for (int i = 0; i < moveamt; i++)
+                        {
+                            yield return new[] { buttons[11] };
+                        }
+                        yield return new[] { buttons[5] };
+                    }
+                }
+            }
+        }
+        else
+        {
+            yield break;
+        }
+    }
+
+    /*IEnumerator ProcessTwitchCommand(string command)
     {
         if (command.Contains(","))
         {
@@ -1196,5 +1370,5 @@ public class TransmittedMorseScript : MonoBehaviour {
                 }
             }
         }
-    }
+    }*/
 }
