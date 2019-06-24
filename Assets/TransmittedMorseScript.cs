@@ -622,6 +622,11 @@ public class TransmittedMorseScript : MonoBehaviour {
                 audio.PlaySoundAtTransform("detonate", transform);
                 yield return new WaitForSeconds(17.0F);
             }
+            else if (messagetrans.Equals("ROGER"))
+            {
+                audio.PlaySoundAtTransform("roger", transform);
+                yield return new WaitForSeconds(12.0F);
+            }
             else if (messagetrans.Equals("WELOSTBRO"))
             {
                 audio.PlaySoundAtTransform("welostbro", transform);
@@ -766,6 +771,10 @@ public class TransmittedMorseScript : MonoBehaviour {
             {
                 audio.PlaySoundAtTransform("long", transform);
                 yield return new WaitForSeconds(10.0F);
+            }
+            else
+            {
+                break;
             }
         }
     }
