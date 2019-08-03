@@ -47,6 +47,8 @@ public class TransmittedMorseScript : MonoBehaviour
     private string topLED;
     private string bottomLED;
 
+    public Renderer reset;
+
     private int[] sliders;
     private int[] positions;
 
@@ -92,6 +94,7 @@ public class TransmittedMorseScript : MonoBehaviour
         }
         pressonce = false;
         pressonce2 = true;
+        reset.material = ledoptions[7];
         randomizeMessage();
         randomizeLEDS();
         checkReverse();
@@ -129,6 +132,7 @@ public class TransmittedMorseScript : MonoBehaviour
             {
                 Audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.TypewriterKey, transform);
                 currentord = 0;
+                reset.material = ledoptions[7];
                 Debug.LogFormat("[Transmitted Morse #{0}] <Stage {1}> Deleted Stored Inputs (Reset Pressed), Please Start Inputs from the Beginning", moduleId, stage);
                 slider1butdisp.GetComponentInChildren<TextMesh>().text = "1";
                 slider2butdisp.GetComponentInChildren<TextMesh>().text = "1";
@@ -147,6 +151,7 @@ public class TransmittedMorseScript : MonoBehaviour
                 bool pass2 = curValue == positions[currentord];
                 if (pass1 == true && pass2 == true)
                 {
+                    reset.material = ledoptions[6];
                     currentord++;
                     Debug.LogFormat("[Transmitted Morse #{0}] <Stage {1}> Slider {2} position {3} was correct", moduleId, stage, slider, curValue);
                 }
