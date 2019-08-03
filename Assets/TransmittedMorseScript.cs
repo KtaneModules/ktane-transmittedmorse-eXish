@@ -1,13 +1,16 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEngine;
-using KModkit;
 using System.Text.RegularExpressions;
+using KModkit;
+using UnityEngine;
 
-public class TransmittedMorseScript : MonoBehaviour {
+using Rnd = UnityEngine.Random;
 
-    public KMAudio audio;
+public class TransmittedMorseScript : MonoBehaviour
+{
+    public KMAudio Audio;
     public KMBombInfo bomb;
 
     public KMSelectable[] buttons;
@@ -60,25 +63,23 @@ public class TransmittedMorseScript : MonoBehaviour {
     static int moduleIdCounter = 1;
     int moduleId;
     private bool moduleSolved;
-    private int announceonce = 0;
 
     void Awake()
     {
         moduleId = moduleIdCounter++;
         stage = 1;
         moduleSolved = false;
-        foreach(KMSelectable obj in buttons){
-            KMSelectable pressed = obj;
-            pressed.OnInteract += delegate () { PressButton(pressed); return false; };
-        }
+        foreach (KMSelectable obj in buttons)
+            obj.OnInteract += delegate () { PressButton(obj); return false; };
     }
 
-    void Start () {
+    void Start()
+    {
         posslide1 = slider1.transform.localPosition;
         posslide2 = slider2.transform.localPosition;
         posslide3 = slider3.transform.localPosition;
         currentord = 0;
-        if(stage == 1)
+        if (stage == 1)
         {
             stage1led.material = ledoptions[6];
             stage2led.material = ledoptions[7];
@@ -87,7 +88,7 @@ public class TransmittedMorseScript : MonoBehaviour {
         {
             stage1led.material = ledoptions[7];
             stage2led.material = ledoptions[6];
-            audio.PlaySoundAtTransform("startup", transform);
+            Audio.PlaySoundAtTransform("startup", transform);
         }
         pressonce = false;
         pressonce2 = true;
@@ -103,11 +104,11 @@ public class TransmittedMorseScript : MonoBehaviour {
 
     void PressButton(KMSelectable pressed)
     {
-        if(moduleSolved != true)
+        if (moduleSolved != true)
         {
             if (pressed == buttons[0] && pressonce == false)
             {
-                audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.ButtonPress, transform);
+                Audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.ButtonPress, transform);
                 buttons[0].transform.Translate(new Vector3(0.0F, 0.0F, -0.005F));
                 pressonce = true;
                 pressonce2 = false;
@@ -117,7 +118,7 @@ public class TransmittedMorseScript : MonoBehaviour {
             }
             else if (pressed == buttons[1] && pressonce2 == false)
             {
-                audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.ButtonPress, transform);
+                Audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.ButtonPress, transform);
                 buttons[0].transform.Translate(new Vector3(0.0F, 0.0F, 0.005F));
                 pressonce = false;
                 pressonce2 = true;
@@ -126,7 +127,7 @@ public class TransmittedMorseScript : MonoBehaviour {
             }
             else if (pressed == buttons[2])
             {
-                audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.TypewriterKey, transform);
+                Audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.TypewriterKey, transform);
                 currentord = 0;
                 Debug.LogFormat("[Transmitted Morse #{0}] <Stage {1}> Deleted Stored Inputs (Reset Pressed), Please Start Inputs from the Beginning", moduleId, stage);
                 slider1butdisp.GetComponentInChildren<TextMesh>().text = "1";
@@ -139,53 +140,19 @@ public class TransmittedMorseScript : MonoBehaviour {
             else if (pressed == buttons[3] || pressed == buttons[4] || pressed == buttons[5])
             {
                 pressed.AddInteractionPunch(0.5f);
-                audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.ButtonPress, transform);
-                bool pass1 = false;
-                bool pass2 = false;
-                if(pressed == buttons[3] && sliders[currentord] == 1)
-                {
-                    pass1 = true;
-                }else if (pressed == buttons[4] && sliders[currentord] == 2)
-                {
-                    pass1 = true;
-                }else if (pressed == buttons[5] && sliders[currentord] == 3)
-                {
-                    pass1 = true;
-                }
-                if (pressed == buttons[3])
-                {
-                    int temp;
-                    int.TryParse(slider1butdisp.GetComponentInChildren<TextMesh>().text, out temp);
-                    if (temp == positions[currentord])
-                    {
-                        pass2 = true;
-                    }
-                }else if (pressed == buttons[4])
-                {
-                    int temp;
-                    int.TryParse(slider2butdisp.GetComponentInChildren<TextMesh>().text, out temp);
-                    if (temp == positions[currentord])
-                    {
-                        pass2 = true;
-                    }
-                }
-                else if (pressed == buttons[5])
-                {
-                    int temp;
-                    int.TryParse(slider3butdisp.GetComponentInChildren<TextMesh>().text, out temp);
-                    if (temp == positions[currentord])
-                    {
-                        pass2 = true;
-                    }
-                }
+                Audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.ButtonPress, transform);
+                var slider = Array.IndexOf(buttons, pressed) - 2;
+                bool pass1 = slider == sliders[currentord];
+                var curValue = int.Parse(new[] { slider1butdisp, slider2butdisp, slider3butdisp }[slider - 1].GetComponentInChildren<TextMesh>().text);
+                bool pass2 = curValue == positions[currentord];
                 if (pass1 == true && pass2 == true)
                 {
                     currentord++;
-                    Debug.LogFormat("[Transmitted Morse #{0}] <Stage {1}> That Slider and Position Input was Correct", moduleId, stage);
+                    Debug.LogFormat("[Transmitted Morse #{0}] <Stage {1}> Slider {2} position {3} was correct", moduleId, stage, slider, curValue);
                 }
                 else
                 {
-                    Debug.LogFormat("[Transmitted Morse #{0}] <Stage {1}> Incorrect Slider or Position Press, try again!", moduleId, stage);
+                    Debug.LogFormat("[Transmitted Morse #{0}] <Stage {1}> Slider {2} position {3} was wrong. Strike!", moduleId, stage, slider, curValue);
                     GetComponent<KMBombModule>().HandleStrike();
                     slider1butdisp.GetComponentInChildren<TextMesh>().text = "1";
                     slider2butdisp.GetComponentInChildren<TextMesh>().text = "1";
@@ -196,14 +163,14 @@ public class TransmittedMorseScript : MonoBehaviour {
                 }
                 if (pass1 == true && pass2 == true && currentord == message.Length)
                 {
-                    if(stage == 1)
+                    if (stage == 1)
                     {
-                        audio.PlaySoundAtTransform("shutdown", transform);
+                        Audio.PlaySoundAtTransform("shutdown", transform);
                         if (courrunning == true)
                         {
                             StopCoroutine(cour);
                         }
-                        if(pressonce == true)
+                        if (pressonce == true)
                         {
                             buttons[0].transform.Translate(new Vector3(0.0F, 0.0F, 0.005F));
                         }
@@ -213,9 +180,9 @@ public class TransmittedMorseScript : MonoBehaviour {
                     }
                     else
                     {
-                        audio.PlaySoundAtTransform("shutdown", transform);
+                        Audio.PlaySoundAtTransform("shutdown", transform);
                         GetComponent<KMBombModule>().HandlePass();
-                        if(courrunning == true)
+                        if (courrunning == true)
                         {
                             StopCoroutine(cour);
                         }
@@ -230,19 +197,20 @@ public class TransmittedMorseScript : MonoBehaviour {
             }
             else if (pressed == buttons[6])
             {
-                audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.ButtonPress, transform);
+                Audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.ButtonPress, transform);
                 pressed.AddInteractionPunch(0.25f);
                 if (!slider1butdisp.GetComponentInChildren<TextMesh>().text.Equals("1"))
                 {
                     int temp = 0;
                     int.TryParse(slider1butdisp.GetComponentInChildren<TextMesh>().text, out temp);
                     temp--;
-                    slider1butdisp.GetComponentInChildren<TextMesh>().text = ""+temp;
-                    slider1.transform.Translate(new Vector3(-0.0033F, 0.0F, 0.0F));
+                    slider1butdisp.GetComponentInChildren<TextMesh>().text = "" + temp;
+                    slider1.transform.localPosition = new Vector3(-0.052f + 0.0033F * temp, 0.01f, -0.015f);
                 }
-            }else if (pressed == buttons[7])
+            }
+            else if (pressed == buttons[7])
             {
-                audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.ButtonPress, transform);
+                Audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.ButtonPress, transform);
                 pressed.AddInteractionPunch(0.25f);
                 if (!slider1butdisp.GetComponentInChildren<TextMesh>().text.Equals("20"))
                 {
@@ -250,11 +218,12 @@ public class TransmittedMorseScript : MonoBehaviour {
                     int.TryParse(slider1butdisp.GetComponentInChildren<TextMesh>().text, out temp);
                     temp++;
                     slider1butdisp.GetComponentInChildren<TextMesh>().text = "" + temp;
-                    slider1.transform.Translate(new Vector3(0.0033F, 0.0F, 0.0F));
+                    slider1.transform.localPosition = new Vector3(-0.052f + 0.0033F * temp, 0.01f, -0.015f);
                 }
-            }else if (pressed == buttons[8])
+            }
+            else if (pressed == buttons[8])
             {
-                audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.ButtonPress, transform);
+                Audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.ButtonPress, transform);
                 pressed.AddInteractionPunch(0.25f);
                 if (!slider2butdisp.GetComponentInChildren<TextMesh>().text.Equals("1"))
                 {
@@ -262,12 +231,12 @@ public class TransmittedMorseScript : MonoBehaviour {
                     int.TryParse(slider2butdisp.GetComponentInChildren<TextMesh>().text, out temp);
                     temp--;
                     slider2butdisp.GetComponentInChildren<TextMesh>().text = "" + temp;
-                    slider2.transform.Translate(new Vector3(-0.0033F, 0.0F, 0.0F));
+                    slider2.transform.localPosition = new Vector3(-0.052f + 0.0033F * temp, 0.01f, -0.035f);
                 }
             }
             else if (pressed == buttons[9])
             {
-                audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.ButtonPress, transform);
+                Audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.ButtonPress, transform);
                 pressed.AddInteractionPunch(0.25f);
                 if (!slider2butdisp.GetComponentInChildren<TextMesh>().text.Equals("20"))
                 {
@@ -275,11 +244,12 @@ public class TransmittedMorseScript : MonoBehaviour {
                     int.TryParse(slider2butdisp.GetComponentInChildren<TextMesh>().text, out temp);
                     temp++;
                     slider2butdisp.GetComponentInChildren<TextMesh>().text = "" + temp;
-                    slider2.transform.Translate(new Vector3(0.0033F, 0.0F, 0.0F));
+                    slider2.transform.localPosition = new Vector3(-0.052f + 0.0033F * temp, 0.01f, -0.035f);
                 }
-            }else if (pressed == buttons[10])
+            }
+            else if (pressed == buttons[10])
             {
-                audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.ButtonPress, transform);
+                Audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.ButtonPress, transform);
                 pressed.AddInteractionPunch(0.25f);
                 if (!slider3butdisp.GetComponentInChildren<TextMesh>().text.Equals("1"))
                 {
@@ -287,12 +257,12 @@ public class TransmittedMorseScript : MonoBehaviour {
                     int.TryParse(slider3butdisp.GetComponentInChildren<TextMesh>().text, out temp);
                     temp--;
                     slider3butdisp.GetComponentInChildren<TextMesh>().text = "" + temp;
-                    slider3.transform.Translate(new Vector3(-0.0033F, 0.0F, 0.0F));
+                    slider3.transform.localPosition = new Vector3(-0.052f + 0.0033F * temp, 0.01f, -0.055f);
                 }
             }
             else if (pressed == buttons[11])
             {
-                audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.ButtonPress, transform);
+                Audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.ButtonPress, transform);
                 pressed.AddInteractionPunch(0.25f);
                 if (!slider3butdisp.GetComponentInChildren<TextMesh>().text.Equals("20"))
                 {
@@ -300,7 +270,7 @@ public class TransmittedMorseScript : MonoBehaviour {
                     int.TryParse(slider3butdisp.GetComponentInChildren<TextMesh>().text, out temp);
                     temp++;
                     slider3butdisp.GetComponentInChildren<TextMesh>().text = "" + temp;
-                    slider3.transform.Translate(new Vector3(0.0033F, 0.0F, 0.0F));
+                    slider3.transform.localPosition = new Vector3(-0.052f + 0.0033F * temp, 0.01f, -0.055f);
                 }
             }
         }
@@ -322,7 +292,7 @@ public class TransmittedMorseScript : MonoBehaviour {
 
     private void randomizeMessage()
     {
-        int mess = Random.RandomRange(0,44);
+        int mess = Rnd.Range(0, 44);
         messagetrans = messages[mess];
         Debug.LogFormat("[Transmitted Morse #{0}] <Stage {1}> The Transmitted Message is '{2}'", moduleId, stage, messages[mess]);
         if (mess > 38 && mess <= 43 && mess != 40)
@@ -330,7 +300,7 @@ public class TransmittedMorseScript : MonoBehaviour {
             message = messages[45];
             Debug.LogFormat("[Transmitted Morse #{0}] <Stage {1}> Message is not in the table without vowel start, using new message 'UNLUCKY'", moduleId, stage);
         }
-        else if(mess == 40)
+        else if (mess == 40)
         {
             message = messages[44];
             Debug.LogFormat("[Transmitted Morse #{0}] <Stage {1}> Message is not in the table with vowel start, using new message 'CODERED'", moduleId, stage);
@@ -344,11 +314,12 @@ public class TransmittedMorseScript : MonoBehaviour {
 
     private void randomizeLEDS()
     {
-        int led1 = Random.RandomRange(0, 7);
-        int led2 = Random.RandomRange(0, 7);
+        int led1 = Rnd.Range(0, 7);
+        int led2 = Rnd.Range(0, 7);
         switch (led1)
         {
-            case 0: topLED = "yellow";
+            case 0:
+                topLED = "yellow";
                 tled.material = ledoptions[0];
                 break;
             case 1:
@@ -415,7 +386,7 @@ public class TransmittedMorseScript : MonoBehaviour {
 
     private void checkReverse()
     {
-        if((topLED.Equals("red") || topLED.Equals("pink")) && (bottomLED.Equals("yellow") || bottomLED.Equals("blue")))
+        if ((topLED.Equals("red") || topLED.Equals("pink")) && (bottomLED.Equals("yellow") || bottomLED.Equals("blue")))
         {
             Debug.LogFormat("[Transmitted Morse #{0}] <Stage {1}> Due to the color of the LEDs, the message must be reversed", moduleId, stage);
             reverseMessage();
@@ -430,7 +401,7 @@ public class TransmittedMorseScript : MonoBehaviour {
     {
         char[] messagechars = message.ToCharArray();
         string tempmessage = "";
-        for(int i = messagechars.Length-1; i >= 0; i--)
+        for (int i = messagechars.Length - 1; i >= 0; i--)
         {
             tempmessage += messagechars[i];
         }
@@ -441,9 +412,9 @@ public class TransmittedMorseScript : MonoBehaviour {
     {
         char[] chars = message.ToCharArray();
         int pos = 0;
-        for(int posi = 0; posi < chars.Length; posi++)
+        for (int posi = 0; posi < chars.Length; posi++)
         {
-            if(topLED.Equals("orange") || topLED.Equals("white"))
+            if (topLED.Equals("orange") || topLED.Equals("white"))
             {
                 if (charIsDigit(chars[posi]))
                 {
@@ -471,7 +442,8 @@ public class TransmittedMorseScript : MonoBehaviour {
                     }
                 }
                 positions[posi] = pos;
-            }else if (bottomLED.Equals("orange") || bottomLED.Equals("yellow"))
+            }
+            else if (bottomLED.Equals("orange") || bottomLED.Equals("yellow"))
             {
                 if (charIsDigit(chars[posi]))
                 {
@@ -535,9 +507,9 @@ public class TransmittedMorseScript : MonoBehaviour {
     private void logSlidersAndPositions()
     {
         string mess = "[Transmitted Morse #{0}] <Stage {1}> The Correct Order of Inputs is:";
-        for(int i = 0; i < sliders.Length; i++)
+        for (int i = 0; i < sliders.Length; i++)
         {
-            if(i == sliders.Length - 1)
+            if (i == sliders.Length - 1)
             {
                 mess += " Slider " + sliders[i] + " to Position " + positions[i];
             }
@@ -555,221 +527,222 @@ public class TransmittedMorseScript : MonoBehaviour {
         {
             if (messagetrans.Equals("BOMBS"))
             {
-                audio.PlaySoundAtTransform("bombs", transform);
+                Audio.PlaySoundAtTransform("bombs", transform);
                 yield return new WaitForSeconds(12.0F);
-            }else if (messagetrans.Equals("SHORT"))
+            }
+            else if (messagetrans.Equals("SHORT"))
             {
-                audio.PlaySoundAtTransform("short", transform);
+                Audio.PlaySoundAtTransform("short", transform);
                 yield return new WaitForSeconds(12.0F);
             }
             else if (messagetrans.Equals("UNDERSTOOD"))
             {
-                audio.PlaySoundAtTransform("understood", transform);
+                Audio.PlaySoundAtTransform("understood", transform);
                 yield return new WaitForSeconds(22.0F);
             }
             else if (messagetrans.Equals("W1RES"))
             {
-                audio.PlaySoundAtTransform("w1res", transform);
+                Audio.PlaySoundAtTransform("w1res", transform);
                 yield return new WaitForSeconds(13.0F);
             }
             else if (messagetrans.Equals("SOS"))
             {
-                audio.PlaySoundAtTransform("sos", transform);
+                Audio.PlaySoundAtTransform("sos", transform);
                 yield return new WaitForSeconds(8.0F);
             }
             else if (messagetrans.Equals("MANUAL"))
             {
-                audio.PlaySoundAtTransform("manual", transform);
+                Audio.PlaySoundAtTransform("manual", transform);
                 yield return new WaitForSeconds(14.0F);
             }
             else if (messagetrans.Equals("STRIKED"))
             {
-                audio.PlaySoundAtTransform("striked", transform);
+                Audio.PlaySoundAtTransform("striked", transform);
                 yield return new WaitForSeconds(15.0F);
             }
             else if (messagetrans.Equals("WEREDEAD"))
             {
-                audio.PlaySoundAtTransform("weredead", transform);
+                Audio.PlaySoundAtTransform("weredead", transform);
                 yield return new WaitForSeconds(17.0F);
             }
             else if (messagetrans.Equals("GOTASOUV"))
             {
-                audio.PlaySoundAtTransform("gotasouv", transform);
+                Audio.PlaySoundAtTransform("gotasouv", transform);
                 yield return new WaitForSeconds(19.0F);
             }
             else if (messagetrans.Equals("EXPLOSION"))
             {
-                audio.PlaySoundAtTransform("explosion", transform);
+                Audio.PlaySoundAtTransform("explosion", transform);
                 yield return new WaitForSeconds(21.0F);
             }
             else if (messagetrans.Equals("EXPERT"))
             {
-                audio.PlaySoundAtTransform("expert", transform);
+                Audio.PlaySoundAtTransform("expert", transform);
                 yield return new WaitForSeconds(14.0F);
             }
             else if (messagetrans.Equals("RIP"))
             {
-                audio.PlaySoundAtTransform("rip", transform);
+                Audio.PlaySoundAtTransform("rip", transform);
                 yield return new WaitForSeconds(8.0F);
             }
             else if (messagetrans.Equals("LISTEN"))
             {
-                audio.PlaySoundAtTransform("listen", transform);
+                Audio.PlaySoundAtTransform("listen", transform);
                 yield return new WaitForSeconds(13.0F);
             }
             else if (messagetrans.Equals("DETONATE"))
             {
-                audio.PlaySoundAtTransform("detonate", transform);
+                Audio.PlaySoundAtTransform("detonate", transform);
                 yield return new WaitForSeconds(17.0F);
             }
             else if (messagetrans.Equals("ROGER"))
             {
-                audio.PlaySoundAtTransform("roger", transform);
+                Audio.PlaySoundAtTransform("roger", transform);
                 yield return new WaitForSeconds(12.0F);
             }
             else if (messagetrans.Equals("WELOSTBRO"))
             {
-                audio.PlaySoundAtTransform("welostbro", transform);
+                Audio.PlaySoundAtTransform("welostbro", transform);
                 yield return new WaitForSeconds(20.0F);
             }
             else if (messagetrans.Equals("AMIDEAF"))
             {
-                audio.PlaySoundAtTransform("amideaf", transform);
+                Audio.PlaySoundAtTransform("amideaf", transform);
                 yield return new WaitForSeconds(15.0F);
             }
             else if (messagetrans.Equals("KEYPAD"))
             {
-                audio.PlaySoundAtTransform("keypad", transform);
+                Audio.PlaySoundAtTransform("keypad", transform);
                 yield return new WaitForSeconds(14.0F);
             }
             else if (messagetrans.Equals("DEFUSER"))
             {
-                audio.PlaySoundAtTransform("defuser", transform);
+                Audio.PlaySoundAtTransform("defuser", transform);
                 yield return new WaitForSeconds(15.0F);
             }
             else if (messagetrans.Equals("NUCLEARWEAPONS"))
             {
-                audio.PlaySoundAtTransform("nuclearweapons", transform);
+                Audio.PlaySoundAtTransform("nuclearweapons", transform);
                 yield return new WaitForSeconds(30.0F);
             }
             else if (messagetrans.Equals("KAPPA"))
             {
-                audio.PlaySoundAtTransform("kappa", transform);
+                Audio.PlaySoundAtTransform("kappa", transform);
                 yield return new WaitForSeconds(12.0F);
             }
             else if (messagetrans.Equals("DELTA"))
             {
-                audio.PlaySoundAtTransform("delta", transform);
+                Audio.PlaySoundAtTransform("delta", transform);
                 yield return new WaitForSeconds(11.0F);
             }
             else if (messagetrans.Equals("PI3"))
             {
-                audio.PlaySoundAtTransform("pi3", transform);
+                Audio.PlaySoundAtTransform("pi3", transform);
                 yield return new WaitForSeconds(8.0F);
             }
             else if (messagetrans.Equals("SMOKE"))
             {
-                audio.PlaySoundAtTransform("smoke", transform);
+                Audio.PlaySoundAtTransform("smoke", transform);
                 yield return new WaitForSeconds(12.0F);
             }
             else if (messagetrans.Equals("SENDHELP"))
             {
-                audio.PlaySoundAtTransform("sendhelp", transform);
+                Audio.PlaySoundAtTransform("sendhelp", transform);
                 yield return new WaitForSeconds(17.0F);
             }
             else if (messagetrans.Equals("LOST"))
             {
-                audio.PlaySoundAtTransform("lost", transform);
+                Audio.PlaySoundAtTransform("lost", transform);
                 yield return new WaitForSeconds(10.0F);
             }
             else if (messagetrans.Equals("SWAN"))
             {
-                audio.PlaySoundAtTransform("swan", transform);
+                Audio.PlaySoundAtTransform("swan", transform);
                 yield return new WaitForSeconds(9.0F);
             }
             else if (messagetrans.Equals("NOMNOM"))
             {
-                audio.PlaySoundAtTransform("nomnom", transform);
+                Audio.PlaySoundAtTransform("nomnom", transform);
                 yield return new WaitForSeconds(14.0F);
             }
             else if (messagetrans.Equals("BLUE"))
             {
-                audio.PlaySoundAtTransform("blue", transform);
+                Audio.PlaySoundAtTransform("blue", transform);
                 yield return new WaitForSeconds(10.0F);
             }
             else if (messagetrans.Equals("BOOM"))
             {
-                audio.PlaySoundAtTransform("boom", transform);
+                Audio.PlaySoundAtTransform("boom", transform);
                 yield return new WaitForSeconds(11.0F);
             }
             else if (messagetrans.Equals("CANCEL"))
             {
-                audio.PlaySoundAtTransform("cancel", transform);
+                Audio.PlaySoundAtTransform("cancel", transform);
                 yield return new WaitForSeconds(14.0F);
             }
             else if (messagetrans.Equals("DEFUSED"))
             {
-                audio.PlaySoundAtTransform("defused", transform);
+                Audio.PlaySoundAtTransform("defused", transform);
                 yield return new WaitForSeconds(15.0F);
             }
             else if (messagetrans.Equals("BROKEN"))
             {
-                audio.PlaySoundAtTransform("broken", transform);
+                Audio.PlaySoundAtTransform("broken", transform);
                 yield return new WaitForSeconds(14.0F);
             }
             else if (messagetrans.Equals("MEMORY"))
             {
-                audio.PlaySoundAtTransform("memory", transform);
+                Audio.PlaySoundAtTransform("memory", transform);
                 yield return new WaitForSeconds(14.0F);
             }
             else if (messagetrans.Equals("R6S8T"))
             {
-                audio.PlaySoundAtTransform("r6s8t", transform);
+                Audio.PlaySoundAtTransform("r6s8t", transform);
                 yield return new WaitForSeconds(12.0F);
             }
             else if (messagetrans.Equals("TRANSMISSION"))
             {
-                audio.PlaySoundAtTransform("transmission", transform);
+                Audio.PlaySoundAtTransform("transmission", transform);
                 yield return new WaitForSeconds(24.0F);
             }
             else if (messagetrans.Equals("UMWHAT"))
             {
-                audio.PlaySoundAtTransform("umwhat", transform);
+                Audio.PlaySoundAtTransform("umwhat", transform);
                 yield return new WaitForSeconds(13.0F);
             }
             else if (messagetrans.Equals("GREEN"))
             {
-                audio.PlaySoundAtTransform("green", transform);
+                Audio.PlaySoundAtTransform("green", transform);
                 yield return new WaitForSeconds(11.0F);
             }
             else if (messagetrans.Equals("EQUATIONSX"))
             {
-                audio.PlaySoundAtTransform("equationsx", transform);
+                Audio.PlaySoundAtTransform("equationsx", transform);
                 yield return new WaitForSeconds(21.0F);
             }
             else if (messagetrans.Equals("RED"))
             {
-                audio.PlaySoundAtTransform("red", transform);
+                Audio.PlaySoundAtTransform("red", transform);
                 yield return new WaitForSeconds(7.0F);
             }
             else if (messagetrans.Equals("ENERGY"))
             {
-                audio.PlaySoundAtTransform("energy", transform);
+                Audio.PlaySoundAtTransform("energy", transform);
                 yield return new WaitForSeconds(13.0F);
             }
             else if (messagetrans.Equals("JESTER"))
             {
-                audio.PlaySoundAtTransform("jester", transform);
+                Audio.PlaySoundAtTransform("jester", transform);
                 yield return new WaitForSeconds(13.0F);
             }
             else if (messagetrans.Equals("CONTACT"))
             {
-                audio.PlaySoundAtTransform("contact", transform);
+                Audio.PlaySoundAtTransform("contact", transform);
                 yield return new WaitForSeconds(16.0F);
             }
             else if (messagetrans.Equals("LONG"))
             {
-                audio.PlaySoundAtTransform("long", transform);
+                Audio.PlaySoundAtTransform("long", transform);
                 yield return new WaitForSeconds(10.0F);
             }
             else
@@ -890,7 +863,7 @@ public class TransmittedMorseScript : MonoBehaviour {
     private bool bombHasModule(string name)
     {
         List<string> modules = bomb.GetModuleNames();
-        foreach(string mod in modules)
+        foreach (string mod in modules)
         {
             if (mod.EqualsIgnoreCase(name))
             {
@@ -916,7 +889,7 @@ public class TransmittedMorseScript : MonoBehaviour {
     {
         int temp = 0;
         int.TryParse(s, out temp);
-        if(temp != 0)
+        if (temp != 0)
         {
             return true;
         }
@@ -948,9 +921,9 @@ public class TransmittedMorseScript : MonoBehaviour {
 
     private bool isAnyPlateEmpty()
     {
-        foreach(string[] plateports in bomb.GetPortPlates())
+        foreach (string[] plateports in bomb.GetPortPlates())
         {
-            if(plateports.Length == 0)
+            if (plateports.Length == 0)
             {
                 return true;
             }
@@ -958,61 +931,9 @@ public class TransmittedMorseScript : MonoBehaviour {
         return false;
     }
 
-    //twitch plays
-    private bool inputIsValid(string cmd)
-    {
-        char[] validchars = {' ',',',';','0','1','2','3','4','5','6','7','8','9'};
-        char[] cmdchars = cmd.ToCharArray();
-        foreach(char c in cmdchars)
-        {
-            if (!validchars.Contains(c))
-            {
-                return false;
-            }
-        }
-        string[] parameters = cmd.Split(' ',';',',');
-        int counter = 0;
-        foreach(string str in parameters)
-        {
-            if (!stringIsDigit(str))
-            {
-                return false;
-            }
-            else
-            {
-                if (counter == 0)
-                {
-                    int temp = 0;
-                    int.TryParse(str, out temp);
-                    if(!((temp >= 1) && (temp <= 3)))
-                    {
-                        return false;
-                    }
-                    else
-                    {
-                        counter = 1;
-                    }
-                }else if (counter == 1)
-                {
-                    int temp = 0;
-                    int.TryParse(str, out temp);
-                    if (!((temp >= 1) && (temp <= 20)))
-                    {
-                        return false;
-                    }
-                    else
-                    {
-                        counter = 0;
-                    }
-                }
-            }
-        }
-        return true;
-    }
-
-    #pragma warning disable 414
+#pragma warning disable 414
     private readonly string TwitchHelpMessage = @"!{0} start [Starts the looping morse message] | !{0} stop [Stops the looping morse message] | !{0} 1 13 [Moves the first slider to the position of 13 and inputs it] | !{0} 1 13;3 2;2 8 [Example of Slider Input Chain Sequence] | !{0} reset [Resets the inputted sequence back to the beginning]";
-    #pragma warning restore 414
+#pragma warning restore 414
 
     IEnumerator ProcessTwitchCommand(string command)
     {
@@ -1034,350 +955,27 @@ public class TransmittedMorseScript : MonoBehaviour {
             yield return new[] { buttons[2] };
             yield break;
         }
-        if (inputIsValid(command))
-        {
-            yield return null;
-            string[] parameters = command.Split(' ',';',',');
-            for (int j = 0; j < parameters.Length; j += 2)
-            {
-                int tester1 = 0;
-                int tester2 = 0;
-                int.TryParse(parameters[j], out tester1);
-                int.TryParse(parameters[j + 1], out tester2);
-                if (tester1 == 1)
-                {
-                    int temp = tester2;
-                    int temp2;
-                    int.TryParse(slider1butdisp.GetComponentInChildren<TextMesh>().text, out temp2);
-                    int moveamt = temp - temp2;
-                    if (moveamt < 0)
-                    {
-                        moveamt = Mathf.Abs(moveamt);
-                        for (int i = 0; i < moveamt; i++)
-                        {
-                            yield return new[] { buttons[6] };
-                        }
-                        yield return new[] { buttons[3] };
-                    }
-                    else if (moveamt == 0)
-                    {
-                        yield return new[] { buttons[3] };
-                    }
-                    else if (moveamt > 0)
-                    {
-                        for (int i = 0; i < moveamt; i++)
-                        {
-                            yield return new[] { buttons[7] };
-                        }
-                        yield return new[] { buttons[3] };
-                    }
-                }
-                else if (tester1 == 2)
-                {
-                    int temp = tester2;
-                    int temp2;
-                    int.TryParse(slider2butdisp.GetComponentInChildren<TextMesh>().text, out temp2);
-                    int moveamt = temp - temp2;
-                    if (moveamt < 0)
-                    {
-                        moveamt = Mathf.Abs(moveamt);
-                        for (int i = 0; i < moveamt; i++)
-                        {
-                            yield return new[] { buttons[8] };
-                        }
-                        yield return new[] { buttons[4] };
-                    }
-                    else if (moveamt == 0)
-                    {
-                        yield return new[] { buttons[4] };
-                    }
-                    else if (moveamt > 0)
-                    {
-                        for (int i = 0; i < moveamt; i++)
-                        {
-                            yield return new[] { buttons[9] };
-                        }
-                        yield return new[] { buttons[4] };
-                    }
-                }
-                else if (tester1 == 3)
-                {
-                    int temp = tester2;
-                    int temp2;
-                    int.TryParse(slider3butdisp.GetComponentInChildren<TextMesh>().text, out temp2);
-                    int moveamt = temp - temp2;
-                    if (moveamt < 0)
-                    {
-                        moveamt = Mathf.Abs(moveamt);
-                        for (int i = 0; i < moveamt; i++)
-                        {
-                            yield return new[] { buttons[10] };
-                        }
-                        yield return new[] { buttons[5] };
-                    }
-                    else if (moveamt == 0)
-                    {
-                        yield return new[] { buttons[5] };
-                    }
-                    else if (moveamt > 0)
-                    {
-                        for (int i = 0; i < moveamt; i++)
-                        {
-                            yield return new[] { buttons[11] };
-                        }
-                        yield return new[] { buttons[5] };
-                    }
-                }
-            }
-        }
-        else
-        {
-            yield break;
-        }
-    }
 
-    /*IEnumerator ProcessTwitchCommand(string command)
-    {
-        if (command.Contains(","))
+        var btns = new List<KMSelectable>();
+        string[] parameters = command.Split(new[] { ' ', ';', ',' }, StringSplitOptions.RemoveEmptyEntries);
+        Debug.LogFormat("{0}: {1}", command, parameters.Length);
+        var sliderValues = new[] { slider1butdisp, slider2butdisp, slider3butdisp }.Select(btn => int.Parse(btn.GetComponentInChildren<TextMesh>().text)).ToArray();
+        for (int j = 0; j < parameters.Length; j += 2)
         {
-            string[] parameters = command.Split(' ', ',');
-            for (int j = 0; j < parameters.Length; j++)
-            {
-                yield return null;
-                if (parameters[j].Equals("slider"))
-                {
-                    if (!stringIsDigit(parameters[j + 2]) || !stringIsDigit(parameters[j + 1]))
-                    {
-                        break;
-                    }
-                    if (parameters[j + 1].Equals("1"))
-                    {
-                        int temp;
-                        int temp2;
-                        int.TryParse(parameters[j + 2], out temp);
-                        int.TryParse(slider1butdisp.GetComponentInChildren<TextMesh>().text, out temp2);
-                        int moveamt = temp - temp2;
-                        if (moveamt < 0)
-                        {
-                            moveamt = Mathf.Abs(moveamt);
-                            for (int i = 0; i < moveamt; i++)
-                            {
-                                buttons[6].OnInteract();
-                                yield return new WaitForSeconds(.1f);
-                            }
-                            buttons[3].OnInteract();
-                        }
-                        else if (moveamt == 0)
-                        {
-                            buttons[3].OnInteract();
-                        }
-                        else
-                        {
-                            for (int i = 0; i < moveamt; i++)
-                            {
-                                buttons[7].OnInteract();
-                                yield return new WaitForSeconds(.1f);
-                            }
-                            buttons[3].OnInteract();
-                        }
-                    }
-                    else if (parameters[j + 1].Equals("2"))
-                    {
-                        int temp;
-                        int temp2;
-                        int.TryParse(parameters[j + 2], out temp);
-                        int.TryParse(slider2butdisp.GetComponentInChildren<TextMesh>().text, out temp2);
-                        int moveamt = temp - temp2;
-                        if (moveamt < 0)
-                        {
-                            moveamt = Mathf.Abs(moveamt);
-                            for (int i = 0; i < moveamt; i++)
-                            {
-                                buttons[8].OnInteract();
-                                yield return new WaitForSeconds(.1f);
-                            }
-                            buttons[4].OnInteract();
-                        }
-                        else if (moveamt == 0)
-                        {
-                            buttons[4].OnInteract();
-                        }
-                        else
-                        {
-                            for (int i = 0; i < moveamt; i++)
-                            {
-                                buttons[9].OnInteract();
-                                yield return new WaitForSeconds(.1f);
-                            }
-                            buttons[4].OnInteract();
-                        }
-                    }
-                    else if (parameters[j + 1].Equals("3"))
-                    {
-                        int temp;
-                        int temp2;
-                        int.TryParse(parameters[j + 2], out temp);
-                        int.TryParse(slider3butdisp.GetComponentInChildren<TextMesh>().text, out temp2);
-                        int moveamt = temp - temp2;
-                        if (moveamt < 0)
-                        {
-                            moveamt = Mathf.Abs(moveamt);
-                            for (int i = 0; i < moveamt; i++)
-                            {
-                                buttons[10].OnInteract();
-                                yield return new WaitForSeconds(.1f);
-                            }
-                            buttons[5].OnInteract();
-                        }
-                        else if (moveamt == 0)
-                        {
-                            buttons[5].OnInteract();
-                        }
-                        else
-                        {
-                            for (int i = 0; i < moveamt; i++)
-                            {
-                                buttons[11].OnInteract();
-                                yield return new WaitForSeconds(.1f);
-                            }
-                            buttons[5].OnInteract();
-                        }
-                    }
-                    yield return new WaitForSeconds(.1f);
-                }
-            }
+            int slider, targetAmount;
+            if (!int.TryParse(parameters[j], out slider) || slider < 1 || slider > 3)
+                yield break;
+            if (!int.TryParse(parameters[j + 1], out targetAmount) || targetAmount < 1 || targetAmount > 20)
+                yield break;
+            if (targetAmount < sliderValues[slider - 1])
+                btns.AddRange(Enumerable.Repeat(buttons[4 + 2 * slider], sliderValues[slider - 1] - targetAmount));
+            else if (targetAmount > sliderValues[slider - 1])
+                btns.AddRange(Enumerable.Repeat(buttons[5 + 2 * slider], targetAmount - sliderValues[slider - 1]));
+            btns.Add(buttons[2 + slider]);
+            sliderValues[slider - 1] = targetAmount;
         }
-        else
-        {
-            string[] parameters = command.Split(' ');
-            foreach (string param in parameters)
-            {
-                yield return null;
-                if (param.Equals("start"))
-                {
-                    buttons[0].OnInteract();
-                    yield return new WaitForSeconds(.1f);
-                    break;
-                }
-                else if (param.Equals("stop"))
-                {
-                    buttons[1].OnInteract();
-                    yield return new WaitForSeconds(.1f);
-                    break;
-                }
-                else if (param.Equals("reset"))
-                {
-                    buttons[2].OnInteract();
-                    yield return new WaitForSeconds(.1f);
-                    break;
-                }
-                else if (param.EqualsIgnoreCase("slider"))
-                {
-                    if (!stringIsDigit(parameters[2]) || !stringIsDigit(parameters[1]))
-                    {
-                        break;
-                    }
-                    if (parameters[1].Equals("1"))
-                    {
-                        int temp;
-                        int temp2;
-                        int.TryParse(parameters[2], out temp);
-                        int.TryParse(slider1butdisp.GetComponentInChildren<TextMesh>().text, out temp2);
-                        int moveamt = temp - temp2;
-                        if (moveamt < 0)
-                        {
-                            moveamt = Mathf.Abs(moveamt);
-                            for (int i = 0; i < moveamt; i++)
-                            {
-                                buttons[6].OnInteract();
-                                yield return new WaitForSeconds(.1f);
-                            }
-                            buttons[3].OnInteract();
-                        }
-                        else if (moveamt == 0)
-                        {
-                            buttons[3].OnInteract();
-                        }
-                        else
-                        {
-                            for (int i = 0; i < moveamt; i++)
-                            {
-                                buttons[7].OnInteract();
-                                yield return new WaitForSeconds(.1f);
-                            }
-                            buttons[3].OnInteract();
-                        }
-                    }
-                    else if (parameters[1].Equals("2"))
-                    {
-                        int temp;
-                        int temp2;
-                        int.TryParse(parameters[2], out temp);
-                        int.TryParse(slider2butdisp.GetComponentInChildren<TextMesh>().text, out temp2);
-                        int moveamt = temp - temp2;
-                        if (moveamt < 0)
-                        {
-                            moveamt = Mathf.Abs(moveamt);
-                            for (int i = 0; i < moveamt; i++)
-                            {
-                                buttons[8].OnInteract();
-                                yield return new WaitForSeconds(.1f);
-                            }
-                            buttons[4].OnInteract();
-                        }
-                        else if (moveamt == 0)
-                        {
-                            buttons[4].OnInteract();
-                        }
-                        else
-                        {
-                            for (int i = 0; i < moveamt; i++)
-                            {
-                                buttons[9].OnInteract();
-                                yield return new WaitForSeconds(.1f);
-                            }
-                            buttons[4].OnInteract();
-                        }
-                    }
-                    else if (parameters[1].Equals("3"))
-                    {
-                        int temp;
-                        int temp2;
-                        int.TryParse(parameters[2], out temp);
-                        int.TryParse(slider3butdisp.GetComponentInChildren<TextMesh>().text, out temp2);
-                        int moveamt = temp - temp2;
-                        if (moveamt < 0)
-                        {
-                            moveamt = Mathf.Abs(moveamt);
-                            for (int i = 0; i < moveamt; i++)
-                            {
-                                buttons[10].OnInteract();
-                                yield return new WaitForSeconds(.1f);
-                            }
-                            buttons[5].OnInteract();
-                        }
-                        else if (moveamt == 0)
-                        {
-                            buttons[5].OnInteract();
-                        }
-                        else
-                        {
-                            for (int i = 0; i < moveamt; i++)
-                            {
-                                buttons[11].OnInteract();
-                                yield return new WaitForSeconds(.1f);
-                            }
-                            buttons[5].OnInteract();
-                        }
-                    }
-                    yield return new WaitForSeconds(.1f);
-                    break;
-                }
-                else
-                {
-                    break;
-                }
-            }
-        }
-    }*/
+
+        yield return null;
+        yield return btns;
+    }
 }
