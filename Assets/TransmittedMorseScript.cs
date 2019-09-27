@@ -54,6 +54,7 @@ public class TransmittedMorseScript : MonoBehaviour
 
     private bool pressonce;
     private bool pressonce2;
+    private bool animating;
 
     private Vector3 posslide1;
     private Vector3 posslide2;
@@ -73,6 +74,7 @@ public class TransmittedMorseScript : MonoBehaviour
         moduleSolved = false;
         foreach (KMSelectable obj in buttons)
             obj.OnInteract += delegate () { PressButton(obj); return false; };
+        reset.material = ledoptions[7];
     }
 
     void Start()
@@ -94,7 +96,6 @@ public class TransmittedMorseScript : MonoBehaviour
         }
         pressonce = false;
         pressonce2 = true;
-        reset.material = ledoptions[7];
         randomizeMessage();
         randomizeLEDS();
         checkReverse();
@@ -103,11 +104,12 @@ public class TransmittedMorseScript : MonoBehaviour
         positions = new int[message.Length];
         calculateSlidersAndPositions();
         logSlidersAndPositions();
+        animating = false;
     }
 
     void PressButton(KMSelectable pressed)
     {
-        if (moduleSolved != true)
+        if (moduleSolved != true && animating != true)
         {
             if (pressed == buttons[0] && pressonce == false)
             {
@@ -170,6 +172,7 @@ public class TransmittedMorseScript : MonoBehaviour
                 {
                     if (stage == 1)
                     {
+                        animating = true;
                         Audio.PlaySoundAtTransform("shutdown", transform);
                         if (courrunning == true)
                         {
@@ -186,6 +189,7 @@ public class TransmittedMorseScript : MonoBehaviour
                     else
                     {
                         Audio.PlaySoundAtTransform("shutdown", transform);
+                        moduleSolved = true;
                         GetComponent<KMBombModule>().HandlePass();
                         if (courrunning == true)
                         {
@@ -195,7 +199,6 @@ public class TransmittedMorseScript : MonoBehaviour
                         {
                             buttons[0].transform.Translate(new Vector3(0.0F, 0.0F, 0.005F));
                         }
-                        moduleSolved = true;
                         Invoke("shutdownLEDS", 0.5F);
                     }
                 }
@@ -293,6 +296,7 @@ public class TransmittedMorseScript : MonoBehaviour
         slider1.transform.localPosition = posslide1;
         slider2.transform.localPosition = posslide2;
         slider3.transform.localPosition = posslide3;
+        reset.material = ledoptions[7];
     }
 
     private void randomizeMessage()
@@ -936,34 +940,36 @@ public class TransmittedMorseScript : MonoBehaviour
         return false;
     }
 
-#pragma warning disable 414
-    private readonly string TwitchHelpMessage = @"!{0} start [Starts the looping morse message] | !{0} stop [Stops the looping morse message] | !{0} 1 13 [Moves the first slider to the position of 13 and inputs it] | !{0} 1 13;3 2;2 8 [Example of Slider Input Chain Sequence] | !{0} reset [Resets the inputted sequence back to the beginning]";
-#pragma warning restore 414
+    //twitch plays
+    #pragma warning disable 414
+    private readonly string TwitchHelpMessage = @"!{0} start [Starts the looping morse message] | !{0} stop [Stops the looping morse message] | !{0} 1 13 [Moves the first slider to the position of 13 and inputs it] | !{0} 1 13;3 2;2 8 [Example of Slider Input Chain Sequence] | !{0} reset [Removes all currently made inputs]";
+    #pragma warning restore 414
 
     IEnumerator ProcessTwitchCommand(string command)
     {
+        Debug.LogFormat("{0}", command);
         if (Regex.IsMatch(command, @"^\s*start\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant))
         {
             yield return null;
-            yield return new[] { buttons[0] };
+            buttons[0].OnInteract();
             yield break;
         }
         if (Regex.IsMatch(command, @"^\s*stop\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant))
         {
             yield return null;
-            yield return new[] { buttons[1] };
+            buttons[1].OnInteract();
             yield break;
         }
         if (Regex.IsMatch(command, @"^\s*reset\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant))
         {
             yield return null;
-            yield return new[] { buttons[2] };
+            buttons[2].OnInteract();
             yield break;
         }
 
         var btns = new List<KMSelectable>();
         string[] parameters = command.Split(new[] { ' ', ';', ',' }, StringSplitOptions.RemoveEmptyEntries);
-        Debug.LogFormat("{0}: {1}", command, parameters.Length);
+        //Debug.LogFormat("{0}: {1}", command, parameters.Length);
         var sliderValues = new[] { slider1butdisp, slider2butdisp, slider3butdisp }.Select(btn => int.Parse(btn.GetComponentInChildren<TextMesh>().text)).ToArray();
         for (int j = 0; j < parameters.Length; j += 2)
         {
@@ -981,6 +987,62 @@ public class TransmittedMorseScript : MonoBehaviour
         }
 
         yield return null;
-        yield return btns;
+        for(int i = 0; i < btns.Count; i++)
+        {
+            btns.ElementAt(i).OnInteract();
+            yield return new WaitForSeconds(0.1f);
+        }
+    }
+
+    IEnumerator TwitchHandleForcedSolve()
+    {
+        if (stage == 1)
+        {
+            yield return ProcessTwitchCommand("reset");
+            string inputs = "";
+            for (int i = 0; i < sliders.Length; i++)
+            {
+                if (i == (sliders.Length - 1))
+                {
+                    inputs += sliders[i] + " " + positions[i];
+                }
+                else
+                {
+                    inputs += sliders[i] + " " + positions[i] + ";";
+                }
+            }
+            yield return ProcessTwitchCommand(inputs);
+            while (animating == true) { yield return new WaitForSeconds(0.1f); };
+            inputs = "";
+            for (int i = 0; i < sliders.Length; i++)
+            {
+                if (i == (sliders.Length - 1))
+                {
+                    inputs += sliders[i] + " " + positions[i];
+                }
+                else
+                {
+                    inputs += sliders[i] + " " + positions[i] + ";";
+                }
+            }
+            yield return ProcessTwitchCommand(inputs);
+            while (animating == true) { yield return true; };
+        }else{
+            yield return ProcessTwitchCommand("reset");
+            string inputs = "";
+            for (int i = 0; i < sliders.Length; i++)
+            {
+                if (i == (sliders.Length - 1))
+                {
+                    inputs += sliders[i] + " " + positions[i];
+                }
+                else
+                {
+                    inputs += sliders[i] + " " + positions[i] + ";";
+                }
+            }
+            yield return ProcessTwitchCommand(inputs);
+            while (animating == true) { yield return true; };
+        }
     }
 }
