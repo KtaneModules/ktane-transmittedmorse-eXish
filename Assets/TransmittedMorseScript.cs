@@ -113,8 +113,8 @@ public class TransmittedMorseScript : MonoBehaviour
         {
             if (pressed == buttons[0] && pressonce == false)
             {
-                Audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.ButtonPress, transform);
-                buttons[0].transform.Translate(new Vector3(0.0F, 0.0F, -0.005F));
+                Audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.ButtonPress, pressed.transform);
+                buttons[0].transform.localPosition += new Vector3(0.0F, -0.005F, 0.0F);
                 pressonce = true;
                 pressonce2 = false;
                 cour = playSound();
@@ -123,8 +123,8 @@ public class TransmittedMorseScript : MonoBehaviour
             }
             else if (pressed == buttons[1] && pressonce2 == false)
             {
-                Audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.ButtonPress, transform);
-                buttons[0].transform.Translate(new Vector3(0.0F, 0.0F, 0.005F));
+                Audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.ButtonPress, pressed.transform);
+                buttons[0].transform.localPosition += new Vector3(0.0F, 0.005F, 0.0F);
                 pressonce = false;
                 pressonce2 = true;
                 stopSound();
@@ -132,7 +132,7 @@ public class TransmittedMorseScript : MonoBehaviour
             }
             else if (pressed == buttons[2])
             {
-                Audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.TypewriterKey, transform);
+                Audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.TypewriterKey, pressed.transform);
                 currentord = 0;
                 reset.material = ledoptions[7];
                 Debug.LogFormat("[Transmitted Morse #{0}] <Stage {1}> Deleted Stored Inputs (Reset Pressed), Please Start Inputs from the Beginning", moduleId, stage);
@@ -146,7 +146,7 @@ public class TransmittedMorseScript : MonoBehaviour
             else if (pressed == buttons[3] || pressed == buttons[4] || pressed == buttons[5])
             {
                 pressed.AddInteractionPunch(0.5f);
-                Audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.ButtonPress, transform);
+                Audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.ButtonPress, pressed.transform);
                 var slider = Array.IndexOf(buttons, pressed) - 2;
                 bool pass1 = slider == sliders[currentord];
                 var curValue = int.Parse(new[] { slider1butdisp, slider2butdisp, slider3butdisp }[slider - 1].GetComponentInChildren<TextMesh>().text);
@@ -205,7 +205,7 @@ public class TransmittedMorseScript : MonoBehaviour
             }
             else if (pressed == buttons[6])
             {
-                Audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.ButtonPress, transform);
+                Audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.ButtonPress, pressed.transform);
                 pressed.AddInteractionPunch(0.25f);
                 if (!slider1butdisp.GetComponentInChildren<TextMesh>().text.Equals("1"))
                 {
@@ -213,12 +213,12 @@ public class TransmittedMorseScript : MonoBehaviour
                     int.TryParse(slider1butdisp.GetComponentInChildren<TextMesh>().text, out temp);
                     temp--;
                     slider1butdisp.GetComponentInChildren<TextMesh>().text = "" + temp;
-                    slider1.transform.localPosition = new Vector3(-0.052f + 0.0033F * temp, 0.01f, -0.015f);
+                    slider1.transform.localPosition = new Vector3(-0.052f + (0.004421F * (temp - 1)), 0.01f, -0.015f);
                 }
             }
             else if (pressed == buttons[7])
             {
-                Audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.ButtonPress, transform);
+                Audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.ButtonPress, pressed.transform);
                 pressed.AddInteractionPunch(0.25f);
                 if (!slider1butdisp.GetComponentInChildren<TextMesh>().text.Equals("20"))
                 {
@@ -226,12 +226,12 @@ public class TransmittedMorseScript : MonoBehaviour
                     int.TryParse(slider1butdisp.GetComponentInChildren<TextMesh>().text, out temp);
                     temp++;
                     slider1butdisp.GetComponentInChildren<TextMesh>().text = "" + temp;
-                    slider1.transform.localPosition = new Vector3(-0.052f + 0.0033F * temp, 0.01f, -0.015f);
+                    slider1.transform.localPosition = new Vector3(-0.052f + (0.004421F * (temp - 1)), 0.01f, -0.015f);
                 }
             }
             else if (pressed == buttons[8])
             {
-                Audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.ButtonPress, transform);
+                Audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.ButtonPress, pressed.transform);
                 pressed.AddInteractionPunch(0.25f);
                 if (!slider2butdisp.GetComponentInChildren<TextMesh>().text.Equals("1"))
                 {
@@ -239,12 +239,12 @@ public class TransmittedMorseScript : MonoBehaviour
                     int.TryParse(slider2butdisp.GetComponentInChildren<TextMesh>().text, out temp);
                     temp--;
                     slider2butdisp.GetComponentInChildren<TextMesh>().text = "" + temp;
-                    slider2.transform.localPosition = new Vector3(-0.052f + 0.0033F * temp, 0.01f, -0.035f);
+                    slider2.transform.localPosition = new Vector3(-0.052f + (0.004421F * (temp - 1)), 0.01f, -0.035f);
                 }
             }
             else if (pressed == buttons[9])
             {
-                Audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.ButtonPress, transform);
+                Audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.ButtonPress, pressed.transform);
                 pressed.AddInteractionPunch(0.25f);
                 if (!slider2butdisp.GetComponentInChildren<TextMesh>().text.Equals("20"))
                 {
@@ -252,12 +252,12 @@ public class TransmittedMorseScript : MonoBehaviour
                     int.TryParse(slider2butdisp.GetComponentInChildren<TextMesh>().text, out temp);
                     temp++;
                     slider2butdisp.GetComponentInChildren<TextMesh>().text = "" + temp;
-                    slider2.transform.localPosition = new Vector3(-0.052f + 0.0033F * temp, 0.01f, -0.035f);
+                    slider2.transform.localPosition = new Vector3(-0.052f + (0.004421F * (temp - 1)), 0.01f, -0.035f);
                 }
             }
             else if (pressed == buttons[10])
             {
-                Audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.ButtonPress, transform);
+                Audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.ButtonPress, pressed.transform);
                 pressed.AddInteractionPunch(0.25f);
                 if (!slider3butdisp.GetComponentInChildren<TextMesh>().text.Equals("1"))
                 {
@@ -265,12 +265,12 @@ public class TransmittedMorseScript : MonoBehaviour
                     int.TryParse(slider3butdisp.GetComponentInChildren<TextMesh>().text, out temp);
                     temp--;
                     slider3butdisp.GetComponentInChildren<TextMesh>().text = "" + temp;
-                    slider3.transform.localPosition = new Vector3(-0.052f + 0.0033F * temp, 0.01f, -0.055f);
+                    slider3.transform.localPosition = new Vector3(-0.052f + (0.004421F * (temp - 1)), 0.01f, -0.055f);
                 }
             }
             else if (pressed == buttons[11])
             {
-                Audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.ButtonPress, transform);
+                Audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.ButtonPress, pressed.transform);
                 pressed.AddInteractionPunch(0.25f);
                 if (!slider3butdisp.GetComponentInChildren<TextMesh>().text.Equals("20"))
                 {
@@ -278,7 +278,7 @@ public class TransmittedMorseScript : MonoBehaviour
                     int.TryParse(slider3butdisp.GetComponentInChildren<TextMesh>().text, out temp);
                     temp++;
                     slider3butdisp.GetComponentInChildren<TextMesh>().text = "" + temp;
-                    slider3.transform.localPosition = new Vector3(-0.052f + 0.0033F * temp, 0.01f, -0.055f);
+                    slider3.transform.localPosition = new Vector3(-0.052f + (0.004421F * (temp - 1)), 0.01f, -0.055f);
                 }
             }
         }
@@ -1012,7 +1012,7 @@ public class TransmittedMorseScript : MonoBehaviour
                 }
             }
             yield return ProcessTwitchCommand(inputs);
-            while (animating == true) { yield return new WaitForSeconds(0.1f); };
+            while (animating == true) { yield return true; };
             inputs = "";
             for (int i = 0; i < sliders.Length; i++)
             {
