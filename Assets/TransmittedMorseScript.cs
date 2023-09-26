@@ -12,6 +12,7 @@ public class TransmittedMorseScript : MonoBehaviour
 {
     public KMAudio Audio;
     public KMBombInfo bomb;
+    public KMColorblindMode colorblindMode;
 
     public KMSelectable[] buttons;
 
@@ -27,6 +28,9 @@ public class TransmittedMorseScript : MonoBehaviour
     public Renderer bled;
     public Renderer stage1led;
     public Renderer stage2led;
+
+    public TextMesh topCBText;
+    public TextMesh bottomCBText;
 
     public Material[] ledoptions;
 
@@ -55,6 +59,7 @@ public class TransmittedMorseScript : MonoBehaviour
     private bool pressonce;
     private bool pressonce2;
     private bool animating;
+    private bool colorblindEnabled;
 
     private Vector3 posslide1;
     private Vector3 posslide2;
@@ -75,6 +80,7 @@ public class TransmittedMorseScript : MonoBehaviour
         foreach (KMSelectable obj in buttons)
             obj.OnInteract += delegate () { PressButton(obj); return false; };
         reset.material = ledoptions[7];
+        colorblindEnabled = colorblindMode.ColorblindModeActive;
     }
 
     void Start()
@@ -286,6 +292,8 @@ public class TransmittedMorseScript : MonoBehaviour
 
     private void shutdownLEDS()
     {
+        topCBText.text = "";
+        bottomCBText.text = "";
         tled.material = ledoptions[7];
         bled.material = ledoptions[7];
         stage1led.material = ledoptions[7];
@@ -357,6 +365,8 @@ public class TransmittedMorseScript : MonoBehaviour
                 break;
             default: break;
         }
+        if (colorblindEnabled)
+            topCBText.text = topLED[0].ToString();
         Debug.LogFormat("[Transmitted Morse #{0}] <Stage {1}> The color of the Top LED is {2}", moduleId, stage, topLED);
         switch (led2)
         {
@@ -390,6 +400,8 @@ public class TransmittedMorseScript : MonoBehaviour
                 break;
             default: break;
         }
+        if (colorblindEnabled)
+            bottomCBText.text = bottomLED[0].ToString();
         Debug.LogFormat("[Transmitted Morse #{0}] <Stage {1}> The color of the Bottom LED is {2}", moduleId, stage, bottomLED);
     }
 
@@ -942,12 +954,11 @@ public class TransmittedMorseScript : MonoBehaviour
 
     //twitch plays
     #pragma warning disable 414
-    private readonly string TwitchHelpMessage = @"!{0} start [Starts the looping morse message] | !{0} stop [Stops the looping morse message] | !{0} 1 13 [Moves the first slider to the position of 13 and inputs it] | !{0} 1 13;3 2;2 8 [Example of Slider Input Chain Sequence] | !{0} reset [Removes all currently made inputs]";
+    private readonly string TwitchHelpMessage = @"!{0} start [Starts the looping morse message] | !{0} stop [Stops the looping morse message] | !{0} 1 13 [Moves the first slider to the position of 13 and inputs it] | !{0} 1 13;3 2;2 8 [Example of Slider Input Chain Sequence] | !{0} reset [Removes all currently made inputs] | !{0} colorblind [Toggles colorblind mode]";
     #pragma warning restore 414
 
     IEnumerator ProcessTwitchCommand(string command)
     {
-        Debug.LogFormat("{0}", command);
         if (Regex.IsMatch(command, @"^\s*start\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant))
         {
             yield return null;
@@ -964,6 +975,25 @@ public class TransmittedMorseScript : MonoBehaviour
         {
             yield return null;
             buttons[2].OnInteract();
+            yield break;
+        }
+        if (Regex.IsMatch(command, @"^\s*colorblind\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant))
+        {
+            yield return null;
+            colorblindEnabled = !colorblindEnabled;
+            if (!animating)
+            {
+                if (colorblindEnabled)
+                {
+                    topCBText.text = topLED[0].ToString();
+                    bottomCBText.text = bottomLED[0].ToString();
+                }
+                else
+                {
+                    topCBText.text = "";
+                    bottomCBText.text = "";
+                }
+            }
             yield break;
         }
 
